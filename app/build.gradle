@@ -1,0 +1,78 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+apply plugin: 'application'
+apply plugin: 'jacoco'
+apply plugin: 'maven-publish'
+mainClassName = 'Main'
+
+run {
+    if ( project.hasProperty('args') ) {
+        args project.args.split('\\s+')
+    }
+    standardInput = System.in
+}
+
+jacoco {
+    toolVersion = "0.7.6.201602180812"
+    applyTo run
+}
+
+test {
+    jacoco {
+        append = false
+        destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
+        classDumpDir = file("$buildDir/jacoco/classpathdumps")
+    }
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.destination "${buildDir}/reports/jacoco/testCodeCoverageReport"
+    }
+}
+
+task applicationCodeCoverageReport(type:JacocoReport){
+    executionData run
+    sourceSets sourceSets.main
+}
+
+// Configure the utility library to be deployed into the local
+// maven repository.
+group = 'com.pajato.java'
+version = '1.0'
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
+publishing {
+    repositories {
+        maven {
+            // change to point to your repo, e.g. http://my.org/repo
+            url "$buildDir/repo"
+        }
+    }
+}
+
+repositories {
+    jcenter()
+    mavenLocal()
+}
+
+dependencies {
+    testCompile 'junit:junit:4.12'
+}
